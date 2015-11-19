@@ -11,8 +11,9 @@ $connector = new React\SocketClient\Connector($loop, $dns);
 function doConnect($connector, $loop) {
     return function () use ($connector, $loop) {
         $connector->create('127.0.0.1', 1337)->then(function (React\Stream\Stream $stream) {
-            $stream->on('data', function ($data, React\Stream\Stream $stream) {
-                echo $data, PHP_EOL;
+            $stream->on('data', function ($uuid, React\Stream\Stream $stream) {
+                $uuid = (int)$uuid;
+                echo $uuid, PHP_EOL;
                 $stream->close();
             });
         });

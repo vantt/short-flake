@@ -37,6 +37,9 @@ class IdGenerator {
      */
     private $incremental = 0;
 
+    /**
+     * @var int
+     */
     private $total_generated_ids = 0;
 
     /**
@@ -52,7 +55,7 @@ class IdGenerator {
      */
     public function __construct(LoopInterface $loop, $generator_id = 1) {
         $this->loop         = $loop;
-        $this->generator_id = $generator_id;
+        $this->generator_id = (int)$generator_id;
 
         $this->resetCounter();
 
@@ -73,6 +76,7 @@ class IdGenerator {
 
     /**
      * Reset the epoc and the counter every 1 milliseconds
+     * Please notices: we only have 4096 ids per milliseconds epoc.
      */
     public function resetCounter() {
         $this->total_generated_ids = $this->total_generated_ids + $this->incremental;
@@ -81,6 +85,8 @@ class IdGenerator {
     }
 
     /**
+     * Return the number of generated ids since started.
+     *
      * @return int
      */
     public function getTotalGeneratedIds() {
@@ -94,9 +100,11 @@ class IdGenerator {
      */
     private function doCompute(Deferred $deferred) {
         $fnc = function () use ($deferred) {
+            // if we still have enough id in this epoc, compute it
             if ($this->incremental < 4096) {
                 $deferred->resolve(($this->current_epoc << 22) | ($this->generator_id << 12) | ($this->incremental++));
             }
+            // if no id left, schedule the computation in the next tick
             else {
                 $this->loop->futureTick($this->doCompute($deferred));
             }
