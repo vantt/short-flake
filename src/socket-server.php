@@ -1,28 +1,28 @@
 <?php
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
-$loop   = React\EventLoop\Factory::create();
-$socket = new React\Socket\Server($loop);
+use React\Socket\Connection;
+use ShortFlake\IdGenerator;
 
-function getId($loop) {
-    $deferred = new \React\Promise\Deferred();
+$loop         = React\EventLoop\Factory::create();
+$id_generator = new IdGenerator($loop);
 
-    $loop->nextTick(function() use ($deferred) {
-        $id = uniqid();
-        $deferred->resolve($id);
-    });
-
-    return $deferred->promise();
-}
-
-$socket->on('connection', function (\React\Socket\Connection $conn) use ($loop) {
-    getId($loop)->then(function($data) use ($conn) {
-        echo memory_get_usage(true), PHP_EOL;
-
-        $conn->write($data);
+// id socket
+$id_socket = new React\Socket\Server($loop);
+$id_socket->listen(1337);
+$id_socket->on('connection', function (Connection $conn) use ($id_generator) {
+    $id_generator->computeId()->then(function ($uuid) use ($conn) {
+        $conn->write($uuid);
     });
 });
 
-$socket->listen(1337);
+// metric socket
+$metric_socket = new React\Socket\Server($loop);
+$metric_socket->listen(1338);
+$metric_socket->on('connection', function (Connection $conn) use ($id_generator) {
+    $mem = memory_get_usage(TRUE);
+    $conn->write('Generated Ids    : '. $id_generator->getTotalGeneratedIds() . PHP_EOL);
+    $conn->write('Mem Usage: '. $mem . 'Bytes, '. round($mem/1024/104).'M'. PHP_EOL);
+});
 
 $loop->run();
