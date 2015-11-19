@@ -1,11 +1,15 @@
 {
+    "description": "Short UUID (64bits) generator server (inspired by SnowFlake) using ReactPHP socket",
+    "keywords": ["uuid", "short uuid", "id generator", "snow flake",  "event-loop", "reactphp", "socket"],
+    "license": "MIT",
     "require": {
         "react/event-loop": "^0.4.1",
         "react/stream": "^0.4.3",
         "react/promise": "^2.2",
         "react/dns": "^0.4.1",
-        "react/http-client": "^0.4.8",
-        "zikarsky/react-gearman": "^0.1.0"
+        "react/socket": "^0.4.2",
+        "react/socket-client": "^0.4.4",
+        "react/zmq": "^0.3.0"
     },
 
     "autoload": {
